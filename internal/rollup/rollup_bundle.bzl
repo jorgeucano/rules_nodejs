@@ -76,7 +76,7 @@ def write_rollup_config(ctx, plugins=[], root_dir=None, filename="_%s.rollup.con
       template =  ctx.file._rollup_config_tmpl,
       substitutions = {
           "TMPL_workspace_name": ctx.workspace_name,
-          "TMPL_rootDir": "\"%s\"" % root_dir,
+          "TMPL_rootDir": root_dir,
           "TMPL_global_name": ctx.attr.global_name if ctx.attr.global_name else ctx.label.name,
           "TMPL_module_mappings": str(mappings),
           "TMPL_additional_plugins": ",\n".join(plugins),
@@ -244,7 +244,8 @@ def _rollup_bundle(ctx):
   umd_rollup_config = write_rollup_config(ctx, filename = "_%s_umd.rollup.conf.js", output_format = "umd")
   run_rollup(ctx, collect_es6_sources(ctx), umd_rollup_config, ctx.outputs.build_umd)
   run_sourcemapexplorer(ctx, ctx.outputs.build_es5_min, source_map, ctx.outputs.explore_html)
-  return DefaultInfo(files=depset([ctx.outputs.build_es5_min, source_map]))
+  files = [ctx.outputs.build_es5_min, source_map]
+  return DefaultInfo(files = depset(files), runfiles = ctx.runfiles(files))
 
 ROLLUP_ATTRS = {
     "entry_point": attr.string(
